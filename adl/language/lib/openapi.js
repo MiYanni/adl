@@ -1,28 +1,32 @@
 import { getDescription } from "./decorators.js";
+import {
+  basePathForResource,
+  getHeaderFieldName,
+  getQueryParamName,
+  getResources
+} from './rest.js';
 
 let init = false;
 
 const root = {
-  openapi: "3.0.0",
+  swagger: "2.0",
   info: {},
-  servers: [],
+  schemes: ["https"],
   paths: {},
-  components: {
-    schemas: {}
-  }
+  definitions: {},
+  parameters: {}
 }
+let program;
 
-export function openapi(program, entity) {
-  if (!init) {
-    program.onBuild(emitOpenAPI);
-    init = true;
-  }
+export function onBuild(p, entity) {
+  program = p;
+  emitOpenAPI();
 }
 
 export function operationId() { };
 
 function emitOpenAPI(program) {
-  for (let resource of resources) {
+  for (let resource of getResources()) {
     emitPathsFromResource(resource);
   }
 
@@ -30,8 +34,7 @@ function emitOpenAPI(program) {
 }
 
 function emitPathsFromResource(resource) {
-  const basePath = basePaths.get(resource);
-
+  const basePath = basePathForResource(resource);
   if (!root.paths[basePath]) {
     root.paths[basePath] = {}
   }
@@ -40,22 +43,22 @@ function emitPathsFromResource(resource) {
 
   if (resource.properties.has('list')) {
     const prop = resource.properties.get('list');
-    root.paths[basePath].get = endpointShapeFromSignature(prop, pathParams);
+    root.paths[basePath].get = endpointShapeFromSignature(resource, prop, pathParams);
   }
 
   if (resource.properties.has('create')) {
     const prop = resource.properties.get('create');
-    root.paths[basePath].post = endpointShapeFromSignature(prop, pathParams)
+    root.paths[basePath].post = endpointShapeFromSignature(resource, prop, pathParams)
   }
 
   if (resource.properties.has('read')) {
     const prop = resource.properties.get('read');
     const id = prop.parameters[0];
-    const subPath = `${basePath}/{${id.name}}`;
+    const subPath = `${basePath}/{${"temp"}}`;
     if (!root.paths[subPath]) {
       root.paths[subPath] = {}
     }
-    root.paths[subPath].get = endpointShapeFromSignature(prop, [...pathParams, id.name]);
+    root.paths[subPath].get = endpointShapeFromSignature(resource, prop, [...pathParams, "temp"]);
   }
 
   if (resource.properties.has('update')) {
@@ -65,40 +68,111 @@ function emitPathsFromResource(resource) {
     if (!root.paths[subPath]) {
       root.paths[subPath] = {}
     }
-    root.paths[subPath].update = endpointShapeFromSignature(prop, [...pathParams, id.name]);
+    root.paths[subPath].update = endpointShapeFromSignature(resource, prop, [...pathParams, id.name]);
   }
 
   if (resource.properties.has('delete')) {
     const prop = resource.properties.get('delete');
     const id = prop.parameters[0];
-    const subPath = `${basePath}/{${id.name}}`;
+    const subPath = `${basePath}/{${"temp"}}`;
     if (!root.paths[subPath]) {
       root.paths[subPath] = {}
     }
-    root.paths[subPath].delete = endpointShapeFromSignature(prop, [...pathParams, id.name]);
+    root.paths[subPath].delete = endpointShapeFromSignature(resource, prop, [...pathParams, "temp"]);
   }
 
   if (resource.properties.has('deleteAll')) {
     const prop = resource.properties.get('deleteAll');
-    root.paths[basePath].delete = endpointShapeFromSignature(prop, pathParams);
+    root.paths[basePath].delete = endpointShapeFromSignature(resource, prop, pathParams);
   }
 
   // the first parameters is the resource id
 }
 
 
-function endpointShapeFromSignature(prop, pathParams = []) {
+function endpointShapeFromSignature(resource, prop, pathParams = []) {
+  let parameters = [];
+  if (resource.parameters) {
+    parameters = parameters.concat(parametersShapeFromParameters(resource.parameters));
+  }
+
+  if (prop.parameters) {
+    parameters = parameters.concat(parametersShapeFromParameters(prop.parameters));
+  }
+
   return {
     summary: getDescription(prop),
-    parameters: parametersShapeFromParameters(prop.parameters, pathParams),
-    responses: responseShapesFromReturnType(prop.returnType)
-  }
+    parameters,
+    responses: responseShapesFromReturnType(prop.returnType),
+  };
 }
 
+const knownParameters = new Map();
 function parametersShapeFromParameters(params, pathParams) {
   const shapes = [];
+  const fields = {
+    statusCode: undefined,
+    headers: new Map(),
+    queries: new Map(),
+    schema: {},
+  };
 
-  for (const p of params) {
+  console.log(params);
+  getSchemaForType(params, fields); 
+
+  for (const [name, value] of fields.headers) {
+    console.log('got header', value);
+    const known = knownParameters.get(value.node);
+    if (known) {
+      shapes.push(known);
+      continue;
+    }
+
+    if (root.parameters[value.name]) {
+      //throw new Error("Can't emit openapi - found duplicate parameter names " + value.name);
+    }
+
+    const paramSchema = getSchemaForType(value.type);
+    paramSchema.name = value.name;
+    paramSchema.in = "header";
+    
+    root.parameters[value.name] = paramSchema;
+
+    const schema = {
+      $ref: "#/parameters/" + value.name
+    }
+    knownParameters.set(value.node, schema);
+    shapes.push(schema);
+  }
+
+  for (const [name, value] of fields.queries) {
+    const known = knownParameters.get(value.node);
+    if (known) {
+      shapes.push(known);
+      continue;
+    }
+
+    if (root.parameters[value.name]) {
+      // in the future, let's be more careful about clobbering here
+      // (but odds are these are just the same params declared multiple times)
+    }
+
+    const paramSchema = getSchemaForType(value.type);
+    paramSchema.name = value.name;
+    paramSchema.in = 'query';
+
+    root.parameters[value.name] = paramSchema;
+
+    const schema = {
+      $ref: '#/parameters/' + value.name,
+    };
+
+    knownParameters.set(value.node, schema);
+    shapes.push(schema);
+  }
+
+  /*
+  for (const p of params.properties) {
     shapes.push({
       name: p.name,
       in: pathParams.includes(p.name) ? "path" : "query",
@@ -106,6 +180,7 @@ function parametersShapeFromParameters(params, pathParams) {
       schema: getSchemaForType(p.type)
     });
   }
+  */
 
   return shapes;
 }
@@ -113,42 +188,30 @@ function parametersShapeFromParameters(params, pathParams) {
 function responseShapesFromReturnType(returnType) {
   const responseShapes = {};
 
-  if (returnType.kind !== "Tuple") {
-    throw new Error("Return type must be a tuple")
+  if (returnType.kind !== "Model" && returnType.kind !== "Union") {
+    throw new Error("Return type must be a model or a union")
   }
 
-  if (returnType.values.length !== 2) {
-    throw new Error("Return type must have both success and error types")
-  }
-
-  const successType = returnType.values[0];
-  const errorType = returnType.values[1];
-
-  if (successType.kind === "Union" && successType.options.every(o => responses.has(o))) {
-    unpackUnionOfResponses(responseShapes, successType);
+  let successType, errorType;
+  // TODO: Support discriminating based on statusCode header.
+  if (returnType.kind === "Union") {
+    successType = returnType.options[0];
+    errorType = returnType.options[1];
   } else {
-    responseShapeFromType(responseShapes, successType, 200);
+    successType = returnType;
   }
 
-  if (errorType.kind === "Union" && errorType.options.every(o => responses.has(o))) {
-    unpackUnionOfResponses(responseShapes, errorType);
-  } else {
-    responseShapeFromType(responseShapes, errorType, "default");
+  responseShapeFromType(responseShapes, successType, 200);
+  if (errorType) {
+    responseShapeFromType(responseShapes, errorType, 'default');
   }
-
+  
 
   return responseShapes;
 }
 
-function unpackUnionOfResponses(responseShapes, union) {
-  for (const option of union.options) {
-    const code = option.properties.get('statusCode')?.type.value ?? 200
-    responseShapeFromType(responseShapes, union, code);
-  }
-}
-
 function responseShapeFromType(responseShapes, type, defaultStatusCode) {
-  if (type.kind === "Model" && type.properties.size === 0) {
+  if (type.kind === "Model" && type.assignmentType === undefined && type.properties.size === 0) {
     responseShapes[defaultStatusCode === 200 ? 201 : defaultStatusCode] = {
       "description": "Null response"
     }
@@ -156,50 +219,53 @@ function responseShapeFromType(responseShapes, type, defaultStatusCode) {
     return;
   }
 
-  if (responses.has(type)) {
-    responseShapeFromResponse(responseShapes, type, defaultStatusCode);
-    return;
-  }
-
-  responseShapes[defaultStatusCode] = {
+  let statusCode = defaultStatusCode;
+  const { headers, schema } = unpackResponseType(type);
+  const response = {
+    headers: {},
     content: {
       "application/json": {
-        schema: getSchemaForType(type)
+        schema: schema
       }
     }
   }
+
+  for (let [name, value] of headers) {
+    // special case - could probably have separate decorator for status code?
+    if (name === 'statusCode') {
+      statusCode = getSchemaForType(value.type);
+      continue;
+    } 
+    name = name.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase();
+    response.headers[name] = getSchemaForType(value.type);
+  }
+  
+  responseShapes[statusCode] = response;
 }
 
-/**
- * Response schemas are models with the following (optional) properties:
- * * content - the content of the response
- * * statusCode
- * * headers
- * * contentType
- */
-function responseShapeFromResponse(responses, responseType, defaultStatusCode) {
-  const headers = [];
-  const contentProp = responseType.properties.get('content');
-  if (!contentProp) {
-    throw new Error('need content in response');
+function unpackResponseType(type) {
+  const fields = {
+    statusCode: undefined,
+    headers: new Map(),
+    queries: new Map(),
+    schema: {}
   }
 
-  const statusCode = responseType.properties.has('statusCode')
-    ? responseType.properties.get('statusCode').type.value
-    : defaultStatusCode
-
-  responses[statusCode] = {
-    content: {
-      "application/json": {
-        schema: getSchemaForType(contentProp.type)
-      }
-    }
+  if (type.kind !== 'Model') {
+    return field;
   }
+
+  if (type.assignmentType) {
+    type = type.assignmentType;
+  }
+
+  fields.schema = getSchemaForType(type, fields);
+
+  return fields;
 }
-
 
 const knownModels = new Map();
-function getSchemaForType(type) {
+function getSchemaForType(type, fields) {
   if (knownModels.has(type)) {
     return knownModels.get(type)
   }
@@ -208,37 +274,38 @@ function getSchemaForType(type) {
   if (builtinType) return builtinType;
 
   if (type.kind === 'Array') {
-    return getSchemaForArray(type);
+    return getSchemaForArray(type, fields);
   } else if (type.kind === 'Model') {
-    return getSchemaForModel(type);
+    return getSchemaForModel(type, fields);
   } else if (type.kind === 'Union') {
-    return getSchemaForUnion(type);
+    return getSchemaForUnion(type, fields);
   }
+
+  throw new Error("Couldn't get schema for type " + type.kind);
 }
 
-function getSchemaForUnion(union) {
+function getSchemaForUnion(union, fields) {
   return {
-    oneOf: union.options.map(o => getSchemaForType(o))
+    oneOf: union.options.map(o => getSchemaForType(o, fields))
   }
 }
 
 const knownModelArrays = new Map();
-function getSchemaForArray(array) {
+function getSchemaForArray(array, fields) {
   const target = array.elementType;
 
   if (knownModelArrays.has(target)) {
     return knownModelArrays.get(target);
   }
 
-
   const schemaName = target.name + 'Array';
-  root.components.schemas[schemaName] = {
-    type: "Array",
-    items: getSchemaForType(target)
-  }
+  root.definitions[schemaName] = {
+    type: 'Array',
+    items: getSchemaForType(target, fields),
+  };
 
   const schema = {
-    $ref: "#/components/schemas/" + schemaName
+    $ref: "#/definitions/" + schemaName
   }
 
   knownModelArrays.set(target, schema);
@@ -246,28 +313,37 @@ function getSchemaForArray(array) {
   return schema;
 }
 
-function getSchemaForModel(model) {
-  const required = [...model.properties]
-    .filter(([_, p]) => !p.optional)
-    .map(([_, p]) => p.name)
-
+function getSchemaForModel(model, fields) {
   const modelSchema = {
     type: "object",
-    required,
+    required: [],
     properties: {}
   }
 
-  for (const [name, prop] of model.properties.entries()) {
-    modelSchema.properties[name] = getSchemaForType(prop.type);
+  for (const [name, prop] of model.properties) {
+    const templateField = getTemplateField(model, name);
+    const headerInfo = getHeaderFieldName(templateField);
+    const queryInfo = getQueryParamName(templateField);
+    if (headerInfo) {
+      fields.headers.set(headerInfo, prop);
+    } else if (queryInfo) {
+      fields.queries.set(queryInfo, prop);
+    } else {
+      if (!prop.optional) {
+        modelSchema.required.push(name);
+      }
+      modelSchema.properties[name] = getSchemaForType(prop.type, fields);
+    }
   }
 
-  if (!model.name) return modelSchema;
+  const name = program.checker.getTypeName(model);
+  if (!name || name === '(anonymous model)') return modelSchema;
 
   const refSchema = {
-    $ref: "#/components/schemas/" + model.name
+    $ref: "#/definitions/" + name
   }
 
-  root.components.schemas[model.name] = modelSchema
+  root.definitions[name] = modelSchema
 
   // next time we ask for this model, we'll just return
   // the ref schema
@@ -278,22 +354,29 @@ function getSchemaForModel(model) {
 
 function mapADLTypeToOpenAPI(adlType) {
   switch (adlType.kind) {
-    case "NumberLiteral":
-      return { type: "number" }
-    case "StringLiteral":
-      return { type: "string" }
-    case "Model":
+    case 'Number':
+    case 'String':
+      return adlType.value;
+    case 'Model':
       switch (adlType.name) {
-        case "int32":
-          return { type: "integer", format: "int32" }
-        case "int64":
-          return { type: "number" }
-        case "float64":
-          return { type: "number" }
-        case "string":
-          return { type: "string" }
+        case 'int32':
+          return { type: 'integer', format: 'int32' };
+        case 'int64':
+          return { type: 'number' };
+        case 'float64':
+          return { type: 'number' };
+        case 'string':
+          return { type: 'string' };
+        case 'boolean':
+          return { type: 'boolean' };
+        case 'date':
+          return { type: 'string' };
       }
     default:
       return false;
   }
+}
+
+function getTemplateField(type, field) {
+  return program.checker.getTypeForNode(type.properties.get(field).node);
 }

@@ -1,6 +1,6 @@
 @resource('/locks')
 interface LocksResource(
-  ... serviceParams,
+  ... ServiceParams,
   ... SyncTokenHeader
 ) {
   read(

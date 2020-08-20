@@ -1,7 +1,7 @@
 
 @resource('/revisions')
 interface RevisionsResource(
-  ... serviceParams,
+  ... ServiceParams,
   ... SyncTokenHeader
 ) {
 

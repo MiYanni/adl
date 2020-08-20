@@ -20,7 +20,6 @@ model Ok<T> {
   ... T;
 }
 
-@inspectType
 model SyncTokenHeader {
   """
   Used to guarantee real-time consistency between requests.

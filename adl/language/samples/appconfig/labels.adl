@@ -1,7 +1,7 @@
 
 @resource('/labels')
 interface LabelsResource(
-  ... serviceParams,
+  ... ServiceParams,
   ... SyncTokenHeader
 ) {
 

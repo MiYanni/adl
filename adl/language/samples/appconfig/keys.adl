@@ -1,6 +1,6 @@
 @resource('/keys')
 interface KeysResource(
-  ... serviceParams,
+  ... ServiceParams,
   ... SyncTokenHeader
 ) {
 
