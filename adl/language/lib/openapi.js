@@ -1,21 +1,22 @@
-import { getDescription } from "./decorators.js";
+import { getDescription } from './decorators.js';
 import {
   basePathForResource,
   getHeaderFieldName,
+  getPathParamName,
   getQueryParamName,
-  getResources
+  getResources,
 } from './rest.js';
 
 let init = false;
 
 const root = {
-  swagger: "2.0",
+  swagger: '2.0',
   info: {},
-  schemes: ["https"],
+  schemes: ['https'],
   paths: {},
   definitions: {},
-  parameters: {}
-}
+  parameters: {},
+};
 let program;
 
 export function onBuild(p, entity) {
@@ -23,7 +24,7 @@ export function onBuild(p, entity) {
   emitOpenAPI();
 }
 
-export function operationId() { };
+export function operationId() {}
 
 function emitOpenAPI(program) {
   for (let resource of getResources()) {
@@ -34,132 +35,188 @@ function emitOpenAPI(program) {
 }
 
 function emitPathsFromResource(resource) {
-  const basePath = basePathForResource(resource);
+  let basePath = basePathForResource(resource);
+  basePath = basePath || '/';
+
   if (!root.paths[basePath]) {
-    root.paths[basePath] = {}
+    root.paths[basePath] = {};
   }
 
-  const pathParams = basePath.match(/\{\w+\}/g)?.map(s => s.slice(1, -1)) ?? [];
+  const pathParams =
+    basePath.match(/\{\w+\}/g)?.map((s) => s.slice(1, -1)) ?? [];
 
   if (resource.properties.has('list')) {
     const prop = resource.properties.get('list');
-    root.paths[basePath].get = endpointShapeFromSignature(resource, prop, pathParams);
+    const { endpointShape } = endpointShapeFromSignature(resource, prop);
+    root.paths[basePath].get = endpointShape;
   }
 
   if (resource.properties.has('create')) {
     const prop = resource.properties.get('create');
-    root.paths[basePath].post = endpointShapeFromSignature(resource, prop, pathParams)
+    const { endpointShape } = endpointShapeFromSignature(resource, prop);
+    root.paths[basePath].post = endpointShape;
   }
 
   if (resource.properties.has('read')) {
     const prop = resource.properties.get('read');
-    const id = prop.parameters[0];
-    const subPath = `${basePath}/{${"temp"}}`;
+    const { endpointShape, pathParams } = endpointShapeFromSignature(
+      resource,
+      prop
+    );
+    const subPath = assembleSubpath(basePath, pathParams);
     if (!root.paths[subPath]) {
-      root.paths[subPath] = {}
+      root.paths[subPath] = {};
     }
-    root.paths[subPath].get = endpointShapeFromSignature(resource, prop, [...pathParams, "temp"]);
+    root.paths[subPath].get = endpointShape;
   }
 
   if (resource.properties.has('update')) {
     const prop = resource.properties.get('update');
-    const id = prop.parameters[0];
-    const subPath = `${basePath}/{${id.name}}`;
+    const { endpointShape, pathParams } = endpointShapeFromSignature(
+      resource,
+      prop
+    );
+    const subPath = assembleSubpath(basePath, pathParams);
     if (!root.paths[subPath]) {
-      root.paths[subPath] = {}
+      root.paths[subPath] = {};
     }
-    root.paths[subPath].update = endpointShapeFromSignature(resource, prop, [...pathParams, id.name]);
+    root.paths[subPath].update = endpointShape;
   }
 
   if (resource.properties.has('delete')) {
     const prop = resource.properties.get('delete');
-    const id = prop.parameters[0];
-    const subPath = `${basePath}/{${"temp"}}`;
+    const { endpointShape, pathParams } = endpointShapeFromSignature(
+      resource,
+      prop
+    );
+    const subPath = assembleSubpath(basePath, pathParams);
     if (!root.paths[subPath]) {
-      root.paths[subPath] = {}
+      root.paths[subPath] = {};
     }
-    root.paths[subPath].delete = endpointShapeFromSignature(resource, prop, [...pathParams, "temp"]);
+    root.paths[subPath].delete = endpointShape;
   }
 
   if (resource.properties.has('deleteAll')) {
     const prop = resource.properties.get('deleteAll');
-    root.paths[basePath].delete = endpointShapeFromSignature(resource, prop, pathParams);
+    const { endpointShape } = endpointShapeFromSignature(resource, prop);
+    root.paths[basePath].delete = endpointShape;
   }
 
   // the first parameters is the resource id
 }
 
+function assembleSubpath(basePath, pathParams) {
+  const firstPath = pathParams[0];
+  return `${basePath}${basePath.endsWith('/') ? '' : '/'}{${firstPath.name}}`;
+}
 
-function endpointShapeFromSignature(resource, prop, pathParams = []) {
+/**
+ *
+ * @param {*} resource
+ * @param {*} prop
+ */
+function endpointShapeFromSignature(resource, prop) {
   let parameters = [];
+  let pathParams = [];
   if (resource.parameters) {
-    parameters = parameters.concat(parametersShapeFromParameters(resource.parameters));
+    const { shapes, fields } = parameterShapesFromParameters(
+      resource.parameters
+    );
+    parameters = parameters.concat(shapes);
+    pathParams = [...pathParams, ...fields.pathParams.values()];
   }
 
   if (prop.parameters) {
-    parameters = parameters.concat(parametersShapeFromParameters(prop.parameters));
+    const { shapes, fields } = parameterShapesFromParameters(prop.parameters);
+    parameters = parameters.concat(shapes);
+    pathParams = [...pathParams, ...fields.pathParams.values()];
   }
 
   return {
-    summary: getDescription(prop),
-    parameters,
-    responses: responseShapesFromReturnType(prop.returnType),
+    pathParams,
+    endpointShape: {
+      summary: getDescription(prop),
+      parameters,
+      responses: responseShapesFromReturnType(prop.returnType),
+    },
   };
 }
 
 const knownParameters = new Map();
-function parametersShapeFromParameters(params, pathParams) {
+function parameterShapesFromParameters(params) {
   const shapes = [];
   const fields = {
     statusCode: undefined,
     headers: new Map(),
     queries: new Map(),
+    pathParams: new Map(),
     schema: {},
   };
 
-  console.log(params);
-  getSchemaForType(params, fields); 
+  getSchemaForType(params, fields);
 
+  // in the future, let's be more careful about clobbering prameters
+  // (but odds are these are just the same params declared multiple times)
+
+  // TODO: refactor below, much is repeated.
   for (const [name, value] of fields.headers) {
-    console.log('got header', value);
+    const description = getDescription(value);
+
+    // cache by node to disambiguate different type instantiations
     const known = knownParameters.get(value.node);
     if (known) {
       shapes.push(known);
       continue;
     }
 
-    if (root.parameters[value.name]) {
-      //throw new Error("Can't emit openapi - found duplicate parameter names " + value.name);
-    }
-
     const paramSchema = getSchemaForType(value.type);
     paramSchema.name = value.name;
-    paramSchema.in = "header";
-    
+    paramSchema.in = 'header';
+    paramSchema.description = description;
+
     root.parameters[value.name] = paramSchema;
 
     const schema = {
-      $ref: "#/parameters/" + value.name
-    }
+      $ref: '#/parameters/' + value.name,
+    };
     knownParameters.set(value.node, schema);
     shapes.push(schema);
   }
 
   for (const [name, value] of fields.queries) {
+    const description = getDescription(value);
     const known = knownParameters.get(value.node);
     if (known) {
       shapes.push(known);
       continue;
     }
 
-    if (root.parameters[value.name]) {
-      // in the future, let's be more careful about clobbering here
-      // (but odds are these are just the same params declared multiple times)
+    const paramSchema = getSchemaForType(value.type);
+    paramSchema.name = value.name;
+    paramSchema.in = 'query';
+    paramSchema.description = description;
+    root.parameters[value.name] = paramSchema;
+
+    const schema = {
+      $ref: '#/parameters/' + value.name,
+    };
+
+    knownParameters.set(value.node, schema);
+    shapes.push(schema);
+  }
+
+  for (const [name, value] of fields.pathParams) {
+    const description = getDescription(value);
+    const known = knownParameters.get(value.node);
+    if (known) {
+      shapes.push(known);
+      continue;
     }
 
     const paramSchema = getSchemaForType(value.type);
     paramSchema.name = value.name;
-    paramSchema.in = 'query';
+    paramSchema.in = 'path';
+    paramSchema.description = description;
 
     root.parameters[value.name] = paramSchema;
 
@@ -171,30 +228,18 @@ function parametersShapeFromParameters(params, pathParams) {
     shapes.push(schema);
   }
 
-  /*
-  for (const p of params.properties) {
-    shapes.push({
-      name: p.name,
-      in: pathParams.includes(p.name) ? "path" : "query",
-      required: !p.optional,
-      schema: getSchemaForType(p.type)
-    });
-  }
-  */
-
-  return shapes;
+  return {
+    shapes,
+    fields,
+  };
 }
 
 function responseShapesFromReturnType(returnType) {
   const responseShapes = {};
 
-  if (returnType.kind !== "Model" && returnType.kind !== "Union") {
-    throw new Error("Return type must be a model or a union")
-  }
-
   let successType, errorType;
   // TODO: Support discriminating based on statusCode header.
-  if (returnType.kind === "Union") {
+  if (returnType.kind === 'Union') {
     successType = returnType.options[0];
     errorType = returnType.options[1];
   } else {
@@ -205,16 +250,19 @@ function responseShapesFromReturnType(returnType) {
   if (errorType) {
     responseShapeFromType(responseShapes, errorType, 'default');
   }
-  
 
   return responseShapes;
 }
 
 function responseShapeFromType(responseShapes, type, defaultStatusCode) {
-  if (type.kind === "Model" && type.assignmentType === undefined && type.properties.size === 0) {
+  if (
+    type.kind === 'Model' &&
+    type.assignmentType === undefined &&
+    type.properties.size === 0
+  ) {
     responseShapes[defaultStatusCode === 200 ? 201 : defaultStatusCode] = {
-      "description": "Null response"
-    }
+      description: 'Null response',
+    };
 
     return;
   }
@@ -224,22 +272,22 @@ function responseShapeFromType(responseShapes, type, defaultStatusCode) {
   const response = {
     headers: {},
     content: {
-      "application/json": {
-        schema: schema
-      }
-    }
-  }
+      'application/json': {
+        schema: schema,
+      },
+    },
+  };
 
   for (let [name, value] of headers) {
     // special case - could probably have separate decorator for status code?
     if (name === 'statusCode') {
       statusCode = getSchemaForType(value.type);
       continue;
-    } 
+    }
     name = name.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase();
     response.headers[name] = getSchemaForType(value.type);
   }
-  
+
   responseShapes[statusCode] = response;
 }
 
@@ -248,14 +296,11 @@ function unpackResponseType(type) {
     statusCode: undefined,
     headers: new Map(),
     queries: new Map(),
-    schema: {}
-  }
+    pathParams: new Map(),
+    schema: {},
+  };
 
-  if (type.kind !== 'Model') {
-    return field;
-  }
-
-  if (type.assignmentType) {
+  if (type.kind === 'Model' && type.assignmentType) {
     type = type.assignmentType;
   }
 
@@ -267,7 +312,7 @@ function unpackResponseType(type) {
 const knownModels = new Map();
 function getSchemaForType(type, fields) {
   if (knownModels.has(type)) {
-    return knownModels.get(type)
+    return knownModels.get(type);
   }
 
   const builtinType = mapADLTypeToOpenAPI(type);
@@ -286,8 +331,8 @@ function getSchemaForType(type, fields) {
 
 function getSchemaForUnion(union, fields) {
   return {
-    oneOf: union.options.map(o => getSchemaForType(o, fields))
-  }
+    oneOf: union.options.map((o) => getSchemaForType(o, fields)),
+  };
 }
 
 const knownModelArrays = new Map();
@@ -305,8 +350,8 @@ function getSchemaForArray(array, fields) {
   };
 
   const schema = {
-    $ref: "#/definitions/" + schemaName
-  }
+    $ref: '#/definitions/' + schemaName,
+  };
 
   knownModelArrays.set(target, schema);
 
@@ -315,19 +360,22 @@ function getSchemaForArray(array, fields) {
 
 function getSchemaForModel(model, fields) {
   const modelSchema = {
-    type: "object",
+    type: 'object',
     required: [],
-    properties: {}
-  }
+    properties: {},
+  };
 
   for (const [name, prop] of model.properties) {
     const templateField = getTemplateField(model, name);
     const headerInfo = getHeaderFieldName(templateField);
     const queryInfo = getQueryParamName(templateField);
+    const pathInfo = getPathParamName(templateField);
     if (headerInfo) {
       fields.headers.set(headerInfo, prop);
     } else if (queryInfo) {
       fields.queries.set(queryInfo, prop);
+    } else if (pathInfo !== undefined) {
+      fields.pathParams.set(pathInfo, prop);
     } else {
       if (!prop.optional) {
         modelSchema.required.push(name);
@@ -340,10 +388,10 @@ function getSchemaForModel(model, fields) {
   if (!name || name === '(anonymous model)') return modelSchema;
 
   const refSchema = {
-    $ref: "#/definitions/" + name
-  }
+    $ref: '#/definitions/' + name,
+  };
 
-  root.definitions[name] = modelSchema
+  root.definitions[name] = modelSchema;
 
   // next time we ask for this model, we'll just return
   // the ref schema

@@ -1,9 +1,7 @@
 model Ok<T> {
   @header statusCode: 200;
-  blah: T;
+  ... T;
 }
-
-model foo = Ok<int32>;
 
 model Pet {
   name: string;
@@ -21,14 +19,10 @@ model Toy {
   name: string;
 }
 
-@inspectType
 model NotModified<T> {
   @header statusCode: 304;
   ... T;
 }
-
-@inspectType
-model PetNotModified = NotModified<Pet & PetId>;
 
 model Page<T> {
   items: T[];
@@ -39,7 +33,14 @@ model PetId {
   @path petId: int32;
 }
 
+"""
+Manage your pets
+"""
+@resource("/pets")
 interface PetsResource {
+  """
+  Delete a pet.
+  """
   delete(... PetId): Ok<{}> | Error;
 
   @description("list pets")
