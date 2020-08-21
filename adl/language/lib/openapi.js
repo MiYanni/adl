@@ -363,6 +363,7 @@ function getSchemaForModel(model, fields) {
     type: 'object',
     required: [],
     properties: {},
+    description: getDescription(model),
   };
 
   for (const [name, prop] of model.properties) {
@@ -370,6 +371,7 @@ function getSchemaForModel(model, fields) {
     const headerInfo = getHeaderFieldName(templateField);
     const queryInfo = getQueryParamName(templateField);
     const pathInfo = getPathParamName(templateField);
+    const description = getDescription(prop);
     if (headerInfo) {
       fields.headers.set(headerInfo, prop);
     } else if (queryInfo) {
@@ -381,6 +383,9 @@ function getSchemaForModel(model, fields) {
         modelSchema.required.push(name);
       }
       modelSchema.properties[name] = getSchemaForType(prop.type, fields);
+      if (description) {
+        modelSchema.properties[name].description = description;
+      }
     }
   }
 
