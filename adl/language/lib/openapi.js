@@ -1,10 +1,11 @@
+import { writeFileSync } from 'fs';
 import { getDescription } from './decorators.js';
 import {
   basePathForResource,
   getHeaderFieldName,
   getPathParamName,
   getQueryParamName,
-  getResources,
+  getResources
 } from './rest.js';
 
 let init = false;
@@ -24,14 +25,16 @@ export function onBuild(p, entity) {
   emitOpenAPI();
 }
 
-export function operationId() {}
+export function operationId() { }
 
 function emitOpenAPI(program) {
   for (let resource of getResources()) {
     emitPathsFromResource(resource);
   }
 
-  console.log(JSON.stringify(root, null, 4));
+  const swagger = JSON.stringify(root, null, 4);
+  console.log(swagger);
+  writeFileSync('C:/Code/adl/adl/language/samples/test/output.json', swagger);
 }
 
 function emitPathsFromResource(resource) {

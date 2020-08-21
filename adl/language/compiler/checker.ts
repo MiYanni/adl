@@ -200,7 +200,7 @@ export function createChecker(program: Program) {
       name: node.id.sv,
       node: node,
       properties: new Map(),
-      parameters: node.parameters ? checkModel(node.parameters) : undefined
+      parameters: node.parameters ? <ModelType>checkModel(node.parameters) : undefined
     });
 
     for (const prop of node.properties) {
@@ -307,7 +307,7 @@ export function createChecker(program: Program) {
       return type;
     } else {
       // model =
-      return  getTypeForNode((<ModelStatementNode>node).assignment!);
+      return getTypeForNode((<ModelStatementNode>node).assignment!);
     }
   }
 
