@@ -5,38 +5,9 @@
         "https"
     ],
     "paths": {
-        "/pets": {
+        "/bool/true": {
             "get": {
-                "summary": "list pets",
-                "parameters": [
-                    {
-                        "$ref": "#/parameters/nextLink"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "headers": {},
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/definitions/Ok<Page<Pet>>"
-                                }
-                            }
-                        }
-                    },
-                    "default": {
-                        "headers": {},
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/definitions/Error"
-                                }
-                            }
-                        }
-                    }
-                }
-            },
-            "post": {
+                "summary": "Get true Boolean value",
                 "parameters": [],
                 "responses": {
                     "200": {
@@ -44,103 +15,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/definitions/Ok<Pet>"
-                                }
-                            }
-                        }
-                    },
-                    "default": {
-                        "headers": {},
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/definitions/Error"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/pets/{petId}": {
-            "get": {
-                "summary": "Returns a pet. Supports eTags.",
-                "parameters": [
-                    {
-                        "$ref": "#/parameters/petId"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "headers": {},
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/definitions/Ok<Pet>"
-                                }
-                            }
-                        }
-                    },
-                    "304": {
-                        "headers": {},
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/definitions/NotModified<Pet>"
-                                }
-                            }
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "summary": "Delete a pet.",
-                "parameters": [
-                    {
-                        "$ref": "#/parameters/petId"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "headers": {},
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/definitions/Ok<(anonymous model)>"
-                                }
-                            }
-                        }
-                    },
-                    "default": {
-                        "headers": {},
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/definitions/Error"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/pets/{petId}/toys": {
-            "get": {
-                "parameters": [
-                    {
-                        "$ref": "#/parameters/nameFilter"
-                    },
-                    {
-                        "$ref": "#/parameters/petId"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "headers": {},
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/definitions/Ok<Page<Toy>>"
+                                    "$ref": "#/definitions/Ok<(unnamed type)>"
                                 }
                             }
                         }
@@ -160,46 +35,19 @@
         }
     },
     "definitions": {
-        "Pet": {
+        "Ok<(unnamed type)>": {
             "type": "object",
-            "required": [
-                "name"
-            ],
-            "properties": {
-                "name": {
-                    "type": "string"
-                }
-            }
-        },
-        "PetArray": {
-            "type": "Array",
-            "items": {
-                "$ref": "#/definitions/Pet"
-            }
-        },
-        "Ok<Page<Pet>>": {
-            "type": "object",
-            "required": [
-                "items",
-                "nextLink"
-            ],
-            "properties": {
-                "items": {
-                    "$ref": "#/definitions/PetArray"
-                },
-                "nextLink": {
-                    "type": "string"
-                }
-            }
+            "required": [],
+            "properties": {}
         },
         "Error": {
             "type": "object",
             "required": [
-                "code",
+                "status",
                 "message"
             ],
             "properties": {
-                "code": {
+                "status": {
                     "type": "integer",
                     "format": "int32"
                 },
@@ -207,90 +55,7 @@
                     "type": "string"
                 }
             }
-        },
-        "Ok<Pet>": {
-            "type": "object",
-            "required": [
-                "name"
-            ],
-            "properties": {
-                "name": {
-                    "type": "string"
-                }
-            }
-        },
-        "NotModified<Pet>": {
-            "type": "object",
-            "required": [
-                "name"
-            ],
-            "properties": {
-                "name": {
-                    "type": "string"
-                }
-            }
-        },
-        "Ok<(anonymous model)>": {
-            "type": "object",
-            "required": [],
-            "properties": {}
-        },
-        "Toy": {
-            "type": "object",
-            "required": [
-                "id",
-                "petId",
-                "name"
-            ],
-            "properties": {
-                "id": {
-                    "type": "number"
-                },
-                "petId": {
-                    "type": "number"
-                },
-                "name": {
-                    "type": "string"
-                }
-            }
-        },
-        "ToyArray": {
-            "type": "Array",
-            "items": {
-                "$ref": "#/definitions/Toy"
-            }
-        },
-        "Ok<Page<Toy>>": {
-            "type": "object",
-            "required": [
-                "items",
-                "nextLink"
-            ],
-            "properties": {
-                "items": {
-                    "$ref": "#/definitions/ToyArray"
-                },
-                "nextLink": {
-                    "type": "string"
-                }
-            }
         }
     },
-    "parameters": {
-        "nextLink": {
-            "type": "string",
-            "name": "nextLink",
-            "in": "query"
-        },
-        "petId": {
-            "type": "string",
-            "name": "petId",
-            "in": "path"
-        },
-        "nameFilter": {
-            "type": "string",
-            "name": "nameFilter",
-            "in": "query"
-        }
-    }
+    "parameters": {}
 }
