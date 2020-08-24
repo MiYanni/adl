@@ -28,7 +28,6 @@ model SyncTokenHeader {
 }
 
 model ServiceParams {
-  @path  endpoint: string;
   @query apiVersion: string;
 }
 
