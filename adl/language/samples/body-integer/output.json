@@ -1,0 +1,61 @@
+{
+    "swagger": "2.0",
+    "info": {},
+    "schemes": [
+        "https"
+    ],
+    "paths": {
+        "/bool/true": {
+            "get": {
+                "summary": "Get true Boolean value",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "headers": {},
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/definitions/Ok<(unnamed type)>"
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "headers": {},
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/definitions/Error"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "Ok<(unnamed type)>": {
+            "type": "object",
+            "required": [],
+            "properties": {}
+        },
+        "Error": {
+            "type": "object",
+            "required": [
+                "status",
+                "message"
+            ],
+            "properties": {
+                "status": {
+                    "type": "integer",
+                    "format": "int32"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        }
+    },
+    "parameters": {}
+}

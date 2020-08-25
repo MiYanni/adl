@@ -7,84 +7,174 @@ model Ok<T> {
   ... T;
 }
 
-/*
-model Ok<T> {
-  @header statusCode: 200;
-  ... T;
-}
-
-model Pet {
-  name: string;
-  //tag?: string;
-}
-*/
-
 model Error {
   status: int32;
   message: string;
 }
 
-/*
-model Toy {
-  id: int64;
-  petId: int64;
-  name: string;
-}
-
-model NotModified<T> {
-  @header statusCode: 304;
-  ... T;
-}
-
-model Page<T> {
-  items: T[];
-  nextLink: string;
-}
-
-model PetId {
-  @path petId: int32;
-}
-*/
-
-model TrueValue = "true";
-
 """
-Test Infrastructure for AutoRest"
+Test Infrastructure for AutoRest
 """
-@resource("/bool/true")
-interface BoolTrue {
+@resource("/int/null")
+interface IntNull {
   """
-  Set Boolean value true
+  Get null Int value
   """
-  // x-ms-examples, Ok/Error description
-  @operationId("bool_putTrue")
-  //@tags(["Bool Operations"])
-  createOrUpdate(@body boolBody: TrueValue): OkEmpty | Error;
-
-  """
-  Get true Boolean value
-  """
-  // x-ms-examples, Ok/Error description
-  @operationId("bool_getTrue")
-  //@tags(["Bool Operations"])
-  list(): Ok<TrueValue> | Error;
-  /*
-    """
-    Delete a pet.
-    """
-    delete (...PetId): Ok<{}> | Error;
-  
-    @description("list pets")
-    list(@query nextLink ?: string): Ok<Page<Pet>> | Error;
-  
-    @description("Returns a pet. Supports eTags.")
-    read(...PetId): Ok<Pet> | NotModified<Pet> | Error;
-  
-    create(@body pet: Pet): Ok<Pet> | Error;
-  */
+  // nullable response type
+  @operationId("int_getNull")
+  list(): Ok<int32> | Error;
 }
 
-// @resource("/pets/{petId}/toys")
-// interface ListPetToysResponse {
-//   list(@path petId: string, @query nameFilter: string): Ok<Page<Toy>> | Error;
-// }
+@resource("/int/invalid")
+interface IntInvalid {
+  """
+  Get invalid Int value
+  """
+  @operationId("int_getInvalid")
+  list(): Ok<int32> | Error;
+}
+
+@resource("/int/overflowint32")
+interface IntOverflow32 {
+  """
+  Get overflow Int32 value
+  """
+  @operationId("int_getOverflowInt32")
+  list(): Ok<int32> | Error;
+}
+
+@resource("/int/underflowint32")
+interface IntUnderflow32 {
+  """
+  Get underflow Int32 value
+  """
+  @operationId("int_getUnderflowInt32")
+  list(): Ok<int32> | Error;
+}
+
+@resource("/int/overflowint64")
+interface IntOverflow32 {
+  """
+  Get overflow Int64 value
+  """
+  @operationId("int_getOverflowInt64")
+  list(): Ok<int64> | Error;
+}
+
+@resource("/int/underflowint64")
+interface IntUnderflow64 {
+  """
+  Get underflow Int64 value
+  """
+  @operationId("int_getUnderflowInt64")
+  list(): Ok<int64> | Error;
+}
+
+@resource("/int/max/32")
+interface IntMax32 {
+  """
+  Put max int32 value
+  """
+  // Adds createOrUpdate to path and uses GET
+  @operationId("int_putMax32")
+  createOrUpdate(
+    """
+    int body
+    """
+    // Note: Default to @body
+    intBody: int32
+  ): OkEmpty | Error;
+}
+
+@resource("/int/max/64")
+interface IntMax64 {
+  """
+  Put max int64 value
+  """
+  // Adds createOrUpdate to path and uses GET
+  @operationId("int_putMax64")
+  createOrUpdate(
+    """
+    int body
+    """
+    // Note: Default to @body
+    intBody: int64
+  ): OkEmpty | Error;
+}
+
+@resource("/int/min/32")
+interface IntMin32 {
+  """
+  Put min int32 value
+  """
+  // Adds createOrUpdate to path and uses GET
+  @operationId("int_putMin32")
+  createOrUpdate(
+    """
+    int body
+    """
+    // Note: Default to @body
+    intBody: int32
+  ): OkEmpty | Error;
+}
+
+@resource("/int/min/64")
+interface IntMin64 {
+  """
+  Put min int64 value
+  """
+  // Adds createOrUpdate to path and uses GET
+  @operationId("int_putMin64")
+  createOrUpdate(
+    """
+    int body
+    """
+    // Note: Default to @body
+    intBody: int64
+  ): OkEmpty | Error;
+}
+
+@resource("/int/unixtime")
+interface IntUnixTime {
+  """
+  Get datetime encoded as Unix time value
+  """
+  // No unixtime type
+  @operationId("int_getUnixTime")
+  list(): Ok<int64> | Error;
+
+  """
+  Put datetime encoded as Unix time
+  """
+  // Adds createOrUpdate to path and uses GET
+  @operationId("int_getUnixTime")
+  createOrUpdate(
+    """
+    int body
+    """
+    // Note: Default to @body
+    // No unixtime type
+    intBody: int64
+  ): OkEmpty | Error;
+}
+
+@resource("/int/invalidunixtime")
+interface IntInvalidUnixTime {
+  """
+  Get invalid Unix time value
+  """
+  // No unixtime type
+  @operationId("int_getInvalidUnixTime")
+  list(): Ok<int64> | Error;
+}
+
+@resource("/int/nullunixtime")
+interface IntNullUnixTime {
+  """
+  Get null Unix time value
+  """
+  // No unixtime type
+  // No nullable
+  @operationId("int_getNullUnixTime")
+  list(): Ok<int64> | Error;
+}

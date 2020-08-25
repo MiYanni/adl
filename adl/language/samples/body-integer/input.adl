@@ -1,0 +1,90 @@
+model OkEmpty {
+  @header statusCode: 200;
+}
+
+model Ok<T> {
+  @header statusCode: 200;
+  ... T;
+}
+
+/*
+model Ok<T> {
+  @header statusCode: 200;
+  ... T;
+}
+
+model Pet {
+  name: string;
+  //tag?: string;
+}
+*/
+
+model Error {
+  status: int32;
+  message: string;
+}
+
+/*
+model Toy {
+  id: int64;
+  petId: int64;
+  name: string;
+}
+
+model NotModified<T> {
+  @header statusCode: 304;
+  ... T;
+}
+
+model Page<T> {
+  items: T[];
+  nextLink: string;
+}
+
+model PetId {
+  @path petId: int32;
+}
+*/
+
+model TrueValue = "true";
+
+"""
+Test Infrastructure for AutoRest"
+"""
+@resource("/bool/true")
+interface BoolTrue {
+  """
+  Set Boolean value true
+  """
+  // x-ms-examples, Ok/Error description
+  @operationId("bool_putTrue")
+  //@tags(["Bool Operations"])
+  createOrUpdate(@body boolBody: TrueValue): OkEmpty | Error;
+
+  """
+  Get true Boolean value
+  """
+  // x-ms-examples, Ok/Error description
+  @operationId("bool_getTrue")
+  //@tags(["Bool Operations"])
+  list(): Ok<TrueValue> | Error;
+  /*
+    """
+    Delete a pet.
+    """
+    delete (...PetId): Ok<{}> | Error;
+  
+    @description("list pets")
+    list(@query nextLink ?: string): Ok<Page<Pet>> | Error;
+  
+    @description("Returns a pet. Supports eTags.")
+    read(...PetId): Ok<Pet> | NotModified<Pet> | Error;
+  
+    create(@body pet: Pet): Ok<Pet> | Error;
+  */
+}
+
+// @resource("/pets/{petId}/toys")
+// interface ListPetToysResponse {
+//   list(@path petId: string, @query nameFilter: string): Ok<Page<Toy>> | Error;
+// }
