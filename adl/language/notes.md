@@ -23,10 +23,9 @@ TODO:
 - support null literal
 - support x-ms-examples
 - support tags
-- support Ok/Error (return type) description
+- support return type (Ok/Error/etc) description
 
-
-Confusing:
+Confusion:
 - translation of function names (read, createOrUpdate, list, etc) to HTTP method types (GET, PUT, PATCH, etc)
 - inline declaration of schemas? (ref counting strategy)
 - is every different path a different interface?
@@ -34,5 +33,10 @@ Confusing:
 - how to map response codes (200, 201, etc) to responses (and default)
 - do not output models that represent responses
   - responses have a schema, and they are not a schema themselves
+- difference between `&` and `...`
+- how to explicitly define glocal parameters
+
+Issues:
 - every parameter is defined as global?!?!!?
 - integers become `number` (meaning, integers becomes a decimal instead of integer)
+- not emitting models unless they are referenced (intended?)
