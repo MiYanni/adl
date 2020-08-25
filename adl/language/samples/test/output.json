@@ -7,27 +7,161 @@
     "paths": {
         "/bool/true": {
             "get": {
+                "operationId": "bool_getTrue",
                 "summary": "Get true Boolean value",
+                "consumes": [],
+                "produces": [
+                    "application/json"
+                ],
                 "parameters": [],
                 "responses": {
                     "200": {
                         "headers": {},
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/definitions/Ok<(unnamed type)>"
-                                }
-                            }
+                        "schema": {
+                            "$ref": "#/parameters/Ok<(unnamed type)>"
                         }
                     },
                     "default": {
                         "headers": {},
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/definitions/Error"
-                                }
-                            }
+                        "schema": {
+                            "$ref": "#/parameters/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/bool/true/createOrUpdate": {
+            "get": {
+                "operationId": "bool_putTrue",
+                "summary": "Set Boolean value true",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "$ref": "#/parameters/boolBody"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "headers": {},
+                        "schema": {
+                            "$ref": "#/parameters/OkEmpty"
+                        }
+                    },
+                    "default": {
+                        "headers": {},
+                        "schema": {
+                            "$ref": "#/parameters/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/bool/false": {
+            "get": {
+                "operationId": "bool_getFalse",
+                "summary": "Get false Boolean value",
+                "consumes": [],
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "headers": {},
+                        "schema": {
+                            "$ref": "#/parameters/Ok<(unnamed type)>"
+                        }
+                    },
+                    "default": {
+                        "headers": {},
+                        "schema": {
+                            "$ref": "#/parameters/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/bool/false/createOrUpdate": {
+            "get": {
+                "operationId": "bool_putFalse",
+                "summary": "Set Boolean value true",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "$ref": "#/parameters/boolBody"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "headers": {},
+                        "schema": {
+                            "$ref": "#/parameters/OkEmpty"
+                        }
+                    },
+                    "default": {
+                        "headers": {},
+                        "schema": {
+                            "$ref": "#/parameters/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/bool/null": {
+            "get": {
+                "operationId": "bool_getNull",
+                "summary": "Get null Boolean value",
+                "consumes": [],
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "headers": {},
+                        "schema": {
+                            "$ref": "#/parameters/Ok<boolean>"
+                        }
+                    },
+                    "default": {
+                        "headers": {},
+                        "schema": {
+                            "$ref": "#/parameters/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/bool/invalid": {
+            "get": {
+                "operationId": "bool_getInvalid",
+                "summary": "Get invalid Boolean value",
+                "consumes": [],
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "headers": {},
+                        "schema": {
+                            "$ref": "#/parameters/Ok<boolean>"
+                        }
+                    },
+                    "default": {
+                        "headers": {},
+                        "schema": {
+                            "$ref": "#/parameters/Error"
                         }
                     }
                 }
@@ -55,7 +189,24 @@
                     "type": "string"
                 }
             }
+        },
+        "OkEmpty": {
+            "type": "object",
+            "required": [],
+            "properties": {}
+        },
+        "Ok<boolean>": {
+            "type": "object",
+            "required": [],
+            "properties": {}
         }
     },
-    "parameters": {}
+    "parameters": {
+        "boolBody": {
+            "name": "boolBody",
+            "in": "body",
+            "requred": true,
+            "schema": "false"
+        }
+    }
 }

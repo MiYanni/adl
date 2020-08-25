@@ -1,3 +1,4 @@
+import { writeFileSync } from 'fs';
 import { Program } from '../compiler/program.js';
 import { ArrayType, InterfaceType, InterfaceTypeProperty as InterfacePropertyType, ModelType, ModelTypeProperty as ModelPropertyType, Type, UnionType } from '../compiler/types.js';
 import { getDescription } from './decorators.js';
@@ -59,12 +60,14 @@ function createOAPIEmitter(program: Program) {
       if (resource.kind !== 'Interface') {
         throw new Error("Resource goes on interface");
       }
-      
+
       emitResource(<InterfaceType>resource);
     }
     emitReferences();
 
-    console.log(JSON.stringify(root, null, 4));
+    const swagger = JSON.stringify(root, null, 4);
+    console.log(swagger);
+    writeFileSync('C:/Code/adl/adl/language/samples/test/output.json', swagger);
   }
 
   function emitResource(resource: InterfaceType) {

@@ -5,29 +5,381 @@
         "https"
     ],
     "paths": {
-        "/bool/true": {
+        "/int/null": {
             "get": {
-                "summary": "Get true Boolean value",
+                "operationId": "int_getNull",
+                "summary": "Get null Int value",
+                "consumes": [],
+                "produces": [
+                    "application/json"
+                ],
                 "parameters": [],
                 "responses": {
                     "200": {
                         "headers": {},
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/definitions/Ok<(unnamed type)>"
-                                }
-                            }
+                        "schema": {
+                            "$ref": "#/parameters/Ok<int32>"
                         }
                     },
                     "default": {
                         "headers": {},
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/definitions/Error"
-                                }
-                            }
+                        "schema": {
+                            "$ref": "#/parameters/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/int/invalid": {
+            "get": {
+                "operationId": "int_getInvalid",
+                "summary": "Get invalid Int value",
+                "consumes": [],
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "headers": {},
+                        "schema": {
+                            "$ref": "#/parameters/Ok<int32>"
+                        }
+                    },
+                    "default": {
+                        "headers": {},
+                        "schema": {
+                            "$ref": "#/parameters/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/int/overflowint32": {
+            "get": {
+                "operationId": "int_getOverflowInt32",
+                "summary": "Get overflow Int32 value",
+                "consumes": [],
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "headers": {},
+                        "schema": {
+                            "$ref": "#/parameters/Ok<int32>"
+                        }
+                    },
+                    "default": {
+                        "headers": {},
+                        "schema": {
+                            "$ref": "#/parameters/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/int/underflowint32": {
+            "get": {
+                "operationId": "int_getUnderflowInt32",
+                "summary": "Get underflow Int32 value",
+                "consumes": [],
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "headers": {},
+                        "schema": {
+                            "$ref": "#/parameters/Ok<int32>"
+                        }
+                    },
+                    "default": {
+                        "headers": {},
+                        "schema": {
+                            "$ref": "#/parameters/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/int/overflowint64": {
+            "get": {
+                "operationId": "int_getOverflowInt64",
+                "summary": "Get overflow Int64 value",
+                "consumes": [],
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "headers": {},
+                        "schema": {
+                            "$ref": "#/parameters/Ok<int64>"
+                        }
+                    },
+                    "default": {
+                        "headers": {},
+                        "schema": {
+                            "$ref": "#/parameters/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/int/underflowint64": {
+            "get": {
+                "operationId": "int_getUnderflowInt64",
+                "summary": "Get underflow Int64 value",
+                "consumes": [],
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "headers": {},
+                        "schema": {
+                            "$ref": "#/parameters/Ok<int64>"
+                        }
+                    },
+                    "default": {
+                        "headers": {},
+                        "schema": {
+                            "$ref": "#/parameters/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/int/max/32/createOrUpdate": {
+            "get": {
+                "operationId": "int_putMax32",
+                "summary": "Put max int32 value",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "$ref": "#/parameters/intBody"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "headers": {},
+                        "schema": {
+                            "$ref": "#/parameters/OkEmpty"
+                        }
+                    },
+                    "default": {
+                        "headers": {},
+                        "schema": {
+                            "$ref": "#/parameters/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/int/max/64/createOrUpdate": {
+            "get": {
+                "operationId": "int_putMax64",
+                "summary": "Put max int64 value",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "$ref": "#/parameters/intBody"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "headers": {},
+                        "schema": {
+                            "$ref": "#/parameters/OkEmpty"
+                        }
+                    },
+                    "default": {
+                        "headers": {},
+                        "schema": {
+                            "$ref": "#/parameters/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/int/min/32/createOrUpdate": {
+            "get": {
+                "operationId": "int_putMin32",
+                "summary": "Put min int32 value",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "$ref": "#/parameters/intBody"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "headers": {},
+                        "schema": {
+                            "$ref": "#/parameters/OkEmpty"
+                        }
+                    },
+                    "default": {
+                        "headers": {},
+                        "schema": {
+                            "$ref": "#/parameters/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/int/min/64/createOrUpdate": {
+            "get": {
+                "operationId": "int_putMin64",
+                "summary": "Put min int64 value",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "$ref": "#/parameters/intBody"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "headers": {},
+                        "schema": {
+                            "$ref": "#/parameters/OkEmpty"
+                        }
+                    },
+                    "default": {
+                        "headers": {},
+                        "schema": {
+                            "$ref": "#/parameters/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/int/unixtime": {
+            "get": {
+                "operationId": "int_getUnixTime",
+                "summary": "Get datetime encoded as Unix time value",
+                "consumes": [],
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "headers": {},
+                        "schema": {
+                            "$ref": "#/parameters/Ok<int64>"
+                        }
+                    },
+                    "default": {
+                        "headers": {},
+                        "schema": {
+                            "$ref": "#/parameters/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/int/unixtime/createOrUpdate": {
+            "get": {
+                "operationId": "int_getUnixTime",
+                "summary": "Put datetime encoded as Unix time",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "$ref": "#/parameters/intBody"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "headers": {},
+                        "schema": {
+                            "$ref": "#/parameters/OkEmpty"
+                        }
+                    },
+                    "default": {
+                        "headers": {},
+                        "schema": {
+                            "$ref": "#/parameters/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/int/invalidunixtime": {
+            "get": {
+                "operationId": "int_getInvalidUnixTime",
+                "summary": "Get invalid Unix time value",
+                "consumes": [],
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "headers": {},
+                        "schema": {
+                            "$ref": "#/parameters/Ok<int64>"
+                        }
+                    },
+                    "default": {
+                        "headers": {},
+                        "schema": {
+                            "$ref": "#/parameters/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/int/nullunixtime": {
+            "get": {
+                "operationId": "int_getNullUnixTime",
+                "summary": "Get null Unix time value",
+                "consumes": [],
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "headers": {},
+                        "schema": {
+                            "$ref": "#/parameters/Ok<int64>"
+                        }
+                    },
+                    "default": {
+                        "headers": {},
+                        "schema": {
+                            "$ref": "#/parameters/Error"
                         }
                     }
                 }
@@ -35,7 +387,7 @@
         }
     },
     "definitions": {
-        "Ok<(unnamed type)>": {
+        "Ok<int32>": {
             "type": "object",
             "required": [],
             "properties": {}
@@ -55,7 +407,27 @@
                     "type": "string"
                 }
             }
+        },
+        "Ok<int64>": {
+            "type": "object",
+            "required": [],
+            "properties": {}
+        },
+        "OkEmpty": {
+            "type": "object",
+            "required": [],
+            "properties": {}
         }
     },
-    "parameters": {}
+    "parameters": {
+        "intBody": {
+            "name": "intBody",
+            "in": "body",
+            "requred": true,
+            "schema": {
+                "type": "number"
+            },
+            "description": "int body"
+        }
+    }
 }

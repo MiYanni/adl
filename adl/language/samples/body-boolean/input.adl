@@ -7,60 +7,20 @@ model Ok<T> {
   ... T;
 }
 
-/*
-model Ok<T> {
-  @header statusCode: 200;
-  ... T;
-}
-
-model Pet {
-  name: string;
-  //tag?: string;
-}
-*/
-
 model Error {
   status: int32;
   message: string;
 }
 
-/*
-model Toy {
-  id: int64;
-  petId: int64;
-  name: string;
-}
-
-model NotModified<T> {
-  @header statusCode: 304;
-  ... T;
-}
-
-model Page<T> {
-  items: T[];
-  nextLink: string;
-}
-
-model PetId {
-  @path petId: int32;
-}
-*/
-
+// boolean literals don't work
 model TrueValue = "true";
+model FalseValue = "false";
 
 """
-Test Infrastructure for AutoRest"
+Test Infrastructure for AutoRest
 """
 @resource("/bool/true")
 interface BoolTrue {
-  """
-  Set Boolean value true
-  """
-  // x-ms-examples, Ok/Error description
-  @operationId("bool_putTrue")
-  //@tags(["Bool Operations"])
-  createOrUpdate(@body boolBody: TrueValue): OkEmpty | Error;
-
   """
   Get true Boolean value
   """
@@ -68,23 +28,61 @@ interface BoolTrue {
   @operationId("bool_getTrue")
   //@tags(["Bool Operations"])
   list(): Ok<TrueValue> | Error;
-  /*
-    """
-    Delete a pet.
-    """
-    delete (...PetId): Ok<{}> | Error;
-  
-    @description("list pets")
-    list(@query nextLink ?: string): Ok<Page<Pet>> | Error;
-  
-    @description("Returns a pet. Supports eTags.")
-    read(...PetId): Ok<Pet> | NotModified<Pet> | Error;
-  
-    create(@body pet: Pet): Ok<Pet> | Error;
-  */
+
+  """
+  Set Boolean value true
+  """
+  // x-ms-examples, Ok/Error description
+  @operationId("bool_putTrue")
+  //@tags(["Bool Operations"])
+  createOrUpdate(
+    @body
+    boolBody: TrueValue
+  ): OkEmpty | Error;
 }
 
-// @resource("/pets/{petId}/toys")
-// interface ListPetToysResponse {
-//   list(@path petId: string, @query nameFilter: string): Ok<Page<Toy>> | Error;
-// }
+"""
+Test Infrastructure for AutoRest
+"""
+@resource("/bool/false")
+interface BoolFalse {
+  """
+  Get false Boolean value
+  """
+  @operationId("bool_getFalse")
+  list(): Ok<FalseValue> | Error;
+
+  """
+  Set Boolean value true
+  """
+  @operationId("bool_putFalse")
+  createOrUpdate(
+    @body
+    boolBody: FalseValue
+  ): OkEmpty | Error;
+}
+
+"""
+Test Infrastructure for AutoRest
+"""
+@resource("/bool/null")
+interface BoolNull {
+  """
+  Get null Boolean value
+  """
+  // Cannot make nullable boolean
+  @operationId("bool_getNull")
+  list(): Ok<boolean> | Error;
+}
+
+"""
+Test Infrastructure for AutoRest
+"""
+@resource("/bool/invalid")
+interface BoolInvalid {
+  """
+  Get invalid Boolean value
+  """
+  @operationId("bool_getInvalid")
+  list(): Ok<boolean> | Error;
+}

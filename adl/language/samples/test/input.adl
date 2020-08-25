@@ -12,169 +12,77 @@ model Error {
   message: string;
 }
 
+// boolean literals don't work
+model TrueValue = "true";
+model FalseValue = "false";
+
 """
 Test Infrastructure for AutoRest
 """
-@resource("/int/null")
-interface IntNull {
+@resource("/bool/true")
+interface BoolTrue {
   """
-  Get null Int value
+  Get true Boolean value
   """
-  // nullable response type
-  @operationId("int_getNull")
-  list(): Ok<int32> | Error;
-}
+  // x-ms-examples, Ok/Error description
+  @operationId("bool_getTrue")
+  //@tags(["Bool Operations"])
+  list(): Ok<TrueValue> | Error;
 
-@resource("/int/invalid")
-interface IntInvalid {
   """
-  Get invalid Int value
+  Set Boolean value true
   """
-  @operationId("int_getInvalid")
-  list(): Ok<int32> | Error;
-}
-
-@resource("/int/overflowint32")
-interface IntOverflow32 {
-  """
-  Get overflow Int32 value
-  """
-  @operationId("int_getOverflowInt32")
-  list(): Ok<int32> | Error;
-}
-
-@resource("/int/underflowint32")
-interface IntUnderflow32 {
-  """
-  Get underflow Int32 value
-  """
-  @operationId("int_getUnderflowInt32")
-  list(): Ok<int32> | Error;
-}
-
-@resource("/int/overflowint64")
-interface IntOverflow32 {
-  """
-  Get overflow Int64 value
-  """
-  @operationId("int_getOverflowInt64")
-  list(): Ok<int64> | Error;
-}
-
-@resource("/int/underflowint64")
-interface IntUnderflow64 {
-  """
-  Get underflow Int64 value
-  """
-  @operationId("int_getUnderflowInt64")
-  list(): Ok<int64> | Error;
-}
-
-@resource("/int/max/32")
-interface IntMax32 {
-  """
-  Put max int32 value
-  """
-  // Adds createOrUpdate to path and uses GET
-  @operationId("int_putMax32")
+  // x-ms-examples, Ok/Error description
+  @operationId("bool_putTrue")
+  //@tags(["Bool Operations"])
   createOrUpdate(
-    """
-    int body
-    """
-    // Note: Default to @body
-    intBody: int32
+    @body
+    boolBody: TrueValue
   ): OkEmpty | Error;
 }
 
-@resource("/int/max/64")
-interface IntMax64 {
+"""
+Test Infrastructure for AutoRest
+"""
+@resource("/bool/false")
+interface BoolFalse {
   """
-  Put max int64 value
+  Get false Boolean value
   """
-  // Adds createOrUpdate to path and uses GET
-  @operationId("int_putMax64")
+  @operationId("bool_getFalse")
+  list(): Ok<FalseValue> | Error;
+
+  """
+  Set Boolean value true
+  """
+  @operationId("bool_putFalse")
   createOrUpdate(
-    """
-    int body
-    """
-    // Note: Default to @body
-    intBody: int64
+    @body
+    boolBody: FalseValue
   ): OkEmpty | Error;
 }
 
-@resource("/int/min/32")
-interface IntMin32 {
+"""
+Test Infrastructure for AutoRest
+"""
+@resource("/bool/null")
+interface BoolNull {
   """
-  Put min int32 value
+  Get null Boolean value
   """
-  // Adds createOrUpdate to path and uses GET
-  @operationId("int_putMin32")
-  createOrUpdate(
-    """
-    int body
-    """
-    // Note: Default to @body
-    intBody: int32
-  ): OkEmpty | Error;
+  // Cannot make nullable boolean
+  @operationId("bool_getNull")
+  list(): Ok<boolean> | Error;
 }
 
-@resource("/int/min/64")
-interface IntMin64 {
+"""
+Test Infrastructure for AutoRest
+"""
+@resource("/bool/invalid")
+interface BoolInvalid {
   """
-  Put min int64 value
+  Get invalid Boolean value
   """
-  // Adds createOrUpdate to path and uses GET
-  @operationId("int_putMin64")
-  createOrUpdate(
-    """
-    int body
-    """
-    // Note: Default to @body
-    intBody: int64
-  ): OkEmpty | Error;
-}
-
-@resource("/int/unixtime")
-interface IntUnixTime {
-  """
-  Get datetime encoded as Unix time value
-  """
-  // No unixtime type
-  @operationId("int_getUnixTime")
-  list(): Ok<int64> | Error;
-
-  """
-  Put datetime encoded as Unix time
-  """
-  // Adds createOrUpdate to path and uses GET
-  @operationId("int_getUnixTime")
-  createOrUpdate(
-    """
-    int body
-    """
-    // Note: Default to @body
-    // No unixtime type
-    intBody: int64
-  ): OkEmpty | Error;
-}
-
-@resource("/int/invalidunixtime")
-interface IntInvalidUnixTime {
-  """
-  Get invalid Unix time value
-  """
-  // No unixtime type
-  @operationId("int_getInvalidUnixTime")
-  list(): Ok<int64> | Error;
-}
-
-@resource("/int/nullunixtime")
-interface IntNullUnixTime {
-  """
-  Get null Unix time value
-  """
-  // No unixtime type
-  // No nullable
-  @operationId("int_getNullUnixTime")
-  list(): Ok<int64> | Error;
+  @operationId("bool_getInvalid")
+  list(): Ok<boolean> | Error;
 }
