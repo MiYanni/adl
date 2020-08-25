@@ -35,7 +35,7 @@ Confusion:
 - do not output models that represent responses
   - responses have a schema, and they are not a schema themselves
 - difference between `&` and `...`
-- how to explicitly define glocal parameters
+- how to explicitly define global parameters
 
 Issues:
 - every parameter is defined as global?!
